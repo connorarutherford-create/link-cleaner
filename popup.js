@@ -148,10 +148,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Upgrade button
   upgradeBtn.addEventListener('click', () => {
-    window.open('https://7330469556177.gumroad.com/l/qohjoe', '_blank');
+    upgradeTitle.textContent = 'Coming Soon';
+    upgradeSub.textContent = 'Awaiting Chrome Web Store approval';
+    setTimeout(() => { upgradeTitle.textContent = 'Upgrade to Pro'; upgradeSub.textContent = '$2.99/mo or $4.99/yr'; }, 3000);
   });
   proBadge.addEventListener('click', () => {
-    window.open('https://7330469556177.gumroad.com/l/qohjoe', '_blank');
+    upgradeBtn.click();
   });
 
   function setStatusNeutral() {
