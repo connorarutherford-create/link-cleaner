@@ -84,15 +84,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Upgrade button
-  function showComingSoon() {
-    statusIcon.textContent = '\uD83D\uDD17';
-    statusLabel.textContent = 'Coming Soon';
-    statusSub.textContent = 'Pro payments will be available shortly';
-    setTimeout(() => loadCurrentTab(), 2500);
-  }
-  
-  upgradeBtn.addEventListener('click', showComingSoon);
-  proBadge.addEventListener('click', showComingSoon);
+  upgradeBtn.addEventListener('click', () => {
+    window.open('https://7330469556177.gumroad.com/l/qohjoe', '_blank');
+  });
+  proBadge.addEventListener('click', () => {
+    window.open('https://7330469556177.gumroad.com/l/qohjoe', '_blank');
+  });
 
   function setStatusNeutral() {
     statusIcon.textContent = '\uD83D\uDD17';
