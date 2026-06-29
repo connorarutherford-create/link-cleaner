@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Upgrade button
   upgradeBtn.addEventListener('click', () => {
-    statusEl.textContent = '\uD83D\uDD17 Coming soon — payment link';
+    statusEl.textContent = '\uD83D\uDD17 Coming soon - payment link';
     setTimeout(() => { init(); }, 2000);
   });
 
