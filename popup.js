@@ -52,17 +52,80 @@ document.addEventListener('DOMContentLoaded', async () => {
   const clickSwitch = document.getElementById('clickSwitch');
   const upgradeBtn = document.getElementById('upgradeBtn');
   const proBadge = document.getElementById('proBadge');
+  const activationSection = document.getElementById('activationSection');
+  const licenseInput = document.getElementById('licenseInput');
+  const activateBtn = document.getElementById('activateBtn');
+  const activationMsg = document.getElementById('activationMsg');
+  const upgradeTitle = document.getElementById('upgradeTitle');
+  const upgradeSub = document.getElementById('upgradeSub');
   const statsRow = document.getElementById('statsRow');
   const statCleaned = document.getElementById('statCleaned');
   const statTracking = document.getElementById('statTracking');
 
   // Track daily stats
   const today = new Date().toDateString();
-  const stored = await chrome.storage.sync.get(['dailyCleaned', 'dailyTrackers', 'lastDate', 'autoClean', 'cleanOnClick']);
+  const stored = await chrome.storage.sync.get(['dailyCleaned', 'dailyTrackers', 'lastDate', 'autoClean', 'cleanOnClick', 'proLicense']);
   
   let dailyCleaned = (stored.lastDate === today) ? (stored.dailyCleaned || 0) : 0;
   let dailyTrackers = (stored.lastDate === today) ? (stored.dailyTrackers || 0) : 0;
 
+  // Pro license state
+  const isPro = stored.proLicense === true;
+  
+  if (isPro) {
+    upgradeTitle.textContent = 'Pro Active';
+    upgradeSub.textContent = 'All features unlocked';
+    upgradeBtn.style.cursor = 'default';
+    upgradeBtn.onclick = null;
+    proBadge.textContent = 'Pro';
+    proBadge.style.cursor = 'default';
+    proBadge.onclick = null;
+  } else {
+    upgradeBtn.addEventListener('click', () => {
+      activationSection.style.display = activationSection.style.display === 'none' ? 'block' : 'none';
+      licenseInput.focus();
+    });
+    proBadge.addEventListener('click', () => {
+      window.open('https://7330469556177.gumroad.com/l/qohjoe', '_blank');
+    });
+  }
+
+  // License activation
+  activateBtn.addEventListener('click', async () => {
+    const key = licenseInput.value.trim();
+    if (!key) { activationMsg.textContent = 'Enter a license key'; return; }
+    
+    activationMsg.textContent = 'Verifying...';
+    activationMsg.style.color = '#8b8ba3';
+    
+    try {
+      const resp = await fetch('https://api.gumroad.com/v2/licenses/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'product_permalink=qohjoe&license_key=' + encodeURIComponent(key)
+      });
+      const data = await resp.json();
+      
+      if (data.success && data.uses === 1) {
+        await chrome.storage.sync.set({ proLicense: true });
+        activationMsg.textContent = 'Pro activated! Reload the popup.';
+        activationMsg.style.color = '#22c55e';
+        setTimeout(() => location.reload(), 1500);
+      } else if (data.success) {
+        await chrome.storage.sync.set({ proLicense: true });
+        activationMsg.textContent = 'Pro activated (key has ' + data.uses + ' uses)';
+        activationMsg.style.color = '#22c55e';
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        activationMsg.textContent = 'Invalid license key';
+        activationMsg.style.color = '#ef4444';
+      }
+    } catch(e) {
+      activationMsg.textContent = 'Could not verify license (check connection)';
+      activationMsg.style.color = '#ef4444';
+    }
+  });
+  
   const isActive = stored.autoClean !== false;
   switchKnob.classList.toggle('active', isActive);
   
