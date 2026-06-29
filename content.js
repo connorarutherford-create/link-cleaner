@@ -13,7 +13,7 @@ const TRACKERS = [
   'pk_source', 'pk_medium', 'pk_campaign', 'pk_keyword',
   'vgo_eo',
   'mrq', 'mrqri', 'mrqei', 'mrqrs',
-  'sa', 'sei',
+  'sa', 'sei', 'srsltid',
 ];
 
 function cleanUrl(url) {
