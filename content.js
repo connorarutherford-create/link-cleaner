@@ -107,9 +107,17 @@ document.addEventListener('click', (e) => {
   e.preventDefault();
   const msg = 'Redirected - stripped ' + cleaned.removed + ' tracking param' + (cleaned.removed > 1 ? 's' : '');
   try {
-    chrome.runtime.sendMessage({ action: 'show-toast', message: msg });
-  } catch(e) {}
-  setTimeout(() => { window.location.href = cleaned.url; }, 1500);
+    chrome.runtime.sendMessage({ action: 'show-toast', message: msg }, () => {
+      // Check if background received it
+      if (chrome.runtime.lastError) {
+        // Notification failed - try fallback
+        try { alert(msg); } catch(e) {}
+      }
+    });
+  } catch(e) {
+    try { alert(msg); } catch(e) {}
+  }
+  setTimeout(() => { window.location.href = cleaned.url; }, 2000);
 });
 
 // ─── Listen for setting changes from popup ──────────────────────────────────
