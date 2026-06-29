@@ -105,8 +105,11 @@ document.addEventListener('click', (e) => {
   const cleaned = cleanUrl(el.href);
   if (!cleaned || cleaned.removed === 0) return;
   e.preventDefault();
-  showToast(cleaned.removed, 'click');
-  setTimeout(() => { window.location.href = cleaned.url; }, 800);
+  const msg = 'Redirected - stripped ' + cleaned.removed + ' tracking param' + (cleaned.removed > 1 ? 's' : '');
+  try {
+    chrome.runtime.sendMessage({ action: 'show-toast', message: msg });
+  } catch(e) {}
+  setTimeout(() => { window.location.href = cleaned.url; }, 1500);
 });
 
 // ─── Listen for setting changes from popup ──────────────────────────────────
