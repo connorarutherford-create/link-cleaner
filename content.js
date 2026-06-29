@@ -27,21 +27,26 @@ function looksLikeUrl(text) {
 }
 
 function showToast(count, action) {
-  const prefix = action === 'click' ? 'Redirected - ' : '';
-  const el = document.createElement('div');
-  el.textContent = 'Link Cleaner: ' + prefix + 'stripped ' + count + ' tracking param' + (count > 1 ? 's' : '');
-  Object.assign(el.style, {
-    position: 'fixed', bottom: '24px', right: '24px',
-    background: '#0f0f1a', color: '#22c55e',
-    padding: '10px 18px', borderRadius: '10px',
-    fontSize: '13px', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-    zIndex: 2147483647,
-    boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-    border: '1px solid rgba(34,197,94,0.2)',
-    opacity: '1', transition: 'opacity 0.3s',
-  });
-  document.body.appendChild(el);
-  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 4000);
+  try {
+    // Try in-page toast first
+    const prefix = action === 'click' ? 'Redirected - ' : '';
+    const msg = 'Link Cleaner: ' + prefix + 'stripped ' + count + ' tracking param' + (count > 1 ? 's' : '');
+    const el = document.createElement('div');
+    el.textContent = msg;
+    Object.assign(el.style, {
+      position: 'fixed', bottom: '24px', right: '24px',
+      background: '#0f0f1a', color: '#22c55e',
+      padding: '10px 18px', borderRadius: '10px',
+      fontSize: '13px', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+      zIndex: 2147483647,
+      boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+      border: '1px solid rgba(34,197,94,0.2)',
+    });
+    document.documentElement.appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 4000);
+  } catch(e) {
+    // Page may not support DOM append — silent fallback
+  }
 }
 
 // ─── Auto-clean on copy ─────────────────────────────────────────────────────
