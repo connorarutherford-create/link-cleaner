@@ -49,12 +49,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const result = cleanUrl(original);
     
     if (!result.url) {
-      statusEl.textContent = '[!] Could not read this URL';
+      statusEl.textContent = '\u274C Could not read this URL';
       return;
     }
     
     if (result.removed === 0) {
-      statusEl.textContent = '[ok] Already clean';
+      statusEl.textContent = '\u2705 Already clean';
       originalUrlEl.textContent = original;
       originalUrlEl.style.display = 'block';
       statsEl.textContent = 'No tracking parameters found';
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     
-    statusEl.textContent = `[x] Stripped ${result.removed} tracking parameter${result.removed > 1 ? 's' : ''}`;
+    statusEl.textContent = `\uD83E\uDDF9 Stripped ${result.removed} tracking parameter${result.removed > 1 ? 's' : ''}`;
     cleanUrlEl.textContent = result.url;
     cleanUrlEl.style.display = 'block';
     originalUrlEl.textContent = original;
@@ -78,12 +78,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         copiedMsg.style.display = 'block';
         setTimeout(() => { copiedMsg.style.display = 'none'; }, 2000);
       } catch (e) {
-        copiedMsg.textContent = '[!] Copy failed';
+        copiedMsg.textContent = '\u274C Copy failed';
         copiedMsg.style.display = 'block';
       }
     });
     
   } catch (e) {
-    statusEl.textContent = '[!] Error reading tab';
+    statusEl.textContent = '\u274C Error reading tab';
   }
 });
