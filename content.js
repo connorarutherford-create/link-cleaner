@@ -73,7 +73,7 @@ document.addEventListener('click', (e) => {
 
     e.preventDefault();
     showToast(cleaned.removed, 'click');
-    window.location.href = cleaned.url;
+    setTimeout(() => { window.location.href = cleaned.url; }, 800);
   });
 });
 
