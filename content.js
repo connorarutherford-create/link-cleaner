@@ -31,6 +31,9 @@ document.addEventListener('copy', (e) => {
   const sel = window.getSelection().toString().trim();
   if (!looksLikeUrl(sel)) return;
   
+  // Mark the page so we know content script is loaded
+  document.body.dataset.lcLoaded = 'true';
+  
   const cleaned = cleanUrl(sel);
   if (!cleaned || cleaned.removed === 0) return;
   
