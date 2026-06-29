@@ -42,14 +42,34 @@ function cleanUrl(url) {
 // Install handler
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.set({ autoClean: true });
-  chrome.contextMenus.create({
-    id: 'copy-clean-link',
-    title: 'Copy Clean Link',
-    contexts: ['link']
+  // Check if Pro and add context menu
+  chrome.storage.sync.get(['proLicense'], (result) => {
+    if (result.proLicense === true) {
+      chrome.contextMenus.create({
+        id: 'copy-clean-link',
+        title: 'Copy Clean Link',
+        contexts: ['link']
+      });
+    }
   });
 });
 
-// Handle right-click on links
+// Listen for license changes
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes.proLicense) {
+    if (changes.proLicense.newValue === true) {
+      chrome.contextMenus.create({
+        id: 'copy-clean-link',
+        title: 'Copy Clean Link',
+        contexts: ['link']
+      });
+    } else {
+      chrome.contextMenus.remove('copy-clean-link');
+    }
+  }
+});
+
+// Handle right-click on links — only if Pro
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'copy-clean-link' && info.linkUrl) {
     const cleaned = cleanUrl(info.linkUrl);

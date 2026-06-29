@@ -79,8 +79,22 @@ function showToast(count, action) {
   } catch(e) {}
 }
 
-// ─── Auto-clean on copy ─────────────────────────────────────────────────────
+// ─── Pro license gate ────────────────────────────────────────────────────────
+let proEnabled = false;
+
+chrome.storage.sync.get(['proLicense'], (result) => {
+  proEnabled = result.proLicense === true;
+});
+
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes.proLicense) {
+    proEnabled = changes.proLicense.newValue === true;
+  }
+});
+
+// ─── Auto-clean on copy (Pro only) ───────────────────────────────────────────
 document.addEventListener('copy', (e) => {
+  if (!proEnabled) return;
   const sel = window.getSelection().toString().trim();
   if (!looksLikeUrl(sel)) return;
   const cleaned = cleanUrl(sel);
