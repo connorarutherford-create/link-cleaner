@@ -81,22 +81,32 @@ document.addEventListener('copy', (e) => {
 });
 
 // ─── Clean on click (toggleable, off by default) ────────────────────────────
+let cleanOnClickEnabled = false;
+
+// Load initial state
+chrome.storage.sync.get(['cleanOnClick'], (result) => {
+  cleanOnClickEnabled = result.cleanOnClick === true;
+});
+
+// Listen for changes from popup
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes.cleanOnClick) {
+    cleanOnClickEnabled = changes.cleanOnClick.newValue === true;
+  }
+});
+
 document.addEventListener('click', (e) => {
+  if (!cleanOnClickEnabled) return;
   let el = e.target;
   while (el && el.tagName !== 'A') el = el.parentElement;
   if (!el || !el.href) return;
   if (!el.href.startsWith('http')) return;
 
-  try {
-    chrome.storage.sync.get(['cleanOnClick'], (result) => {
-      if (!result.cleanOnClick) return;
-      const cleaned = cleanUrl(el.href);
-      if (!cleaned || cleaned.removed === 0) return;
-      e.preventDefault();
-      showToast(cleaned.removed, 'click');
-      setTimeout(() => { window.location.href = cleaned.url; }, 800);
-    });
-  } catch(e) {}
+  const cleaned = cleanUrl(el.href);
+  if (!cleaned || cleaned.removed === 0) return;
+  e.preventDefault();
+  showToast(cleaned.removed, 'click');
+  setTimeout(() => { window.location.href = cleaned.url; }, 800);
 });
 
 // ─── Listen for setting changes from popup ──────────────────────────────────
