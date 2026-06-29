@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const copiedMsg = document.getElementById('copiedMsg');
   const autoToggle = document.getElementById('autoToggle');
   const switchKnob = document.getElementById('switchKnob');
+  const clickToggle = document.getElementById('clickToggle');
+  const clickSwitch = document.getElementById('clickSwitch');
   const upgradeBtn = document.getElementById('upgradeBtn');
   const proBadge = document.getElementById('proBadge');
   const statsRow = document.getElementById('statsRow');
@@ -44,12 +46,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const isActive = stored.autoClean !== false;
   switchKnob.classList.toggle('active', isActive);
+  
+  const clickActive = stored.cleanOnClick === true;
+  clickSwitch.classList.toggle('active', clickActive);
 
   // Toggle auto-clean
   autoToggle.addEventListener('click', async () => {
     const nowActive = !switchKnob.classList.contains('active');
     switchKnob.classList.toggle('active');
     await chrome.storage.sync.set({ autoClean: nowActive });
+  });
+
+  // Toggle clean-on-click
+  clickToggle.addEventListener('click', async () => {
+    const nowActive = !clickSwitch.classList.contains('active');
+    clickSwitch.classList.toggle('active');
+    await chrome.storage.sync.set({ cleanOnClick: nowActive });
   });
 
   // Upgrade button
