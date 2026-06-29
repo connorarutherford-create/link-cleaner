@@ -65,17 +65,24 @@ document.addEventListener('click', (e) => {
   if (!el || !el.href) return;
   if (!el.href.startsWith('http')) return;
 
-  chrome.storage.sync.get(['cleanOnClick'], (result) => {
-    if (!result.cleanOnClick) return;
-
-    const cleaned = cleanUrl(el.href);
-    if (!cleaned || cleaned.removed === 0) return;
-
-    e.preventDefault();
-    showToast(cleaned.removed, 'click');
-    setTimeout(() => { window.location.href = cleaned.url; }, 800);
-  });
+  // Check if clean-on-click is enabled (with safe fallback)
+  try {
+    chrome.storage.sync.get(['cleanOnClick'], (result) => {
+      if (!result.cleanOnClick) return;
+      handleClickRedirect(e, el);
+    });
+  } catch (e) {
+    // Storage unavailable on this page — no-op
+  }
 });
+
+function handleClickRedirect(e, el) {
+  const cleaned = cleanUrl(el.href);
+  if (!cleaned || cleaned.removed === 0) return;
+  e.preventDefault();
+  showToast(cleaned.removed, 'click');
+  setTimeout(() => { window.location.href = cleaned.url; }, 800);
+}
 
 // ─── Listen for setting changes from popup ──────────────────────────────────
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
