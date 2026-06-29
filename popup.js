@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const resp = await fetch('https://api.gumroad.com/v2/licenses/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'product_permalink=qohjoe&license_key=' + encodeURIComponent(key)
+        body: 'product_id=' + encodeURIComponent('ukk37CB6CSPdQPMMdsA-sA==') + '&license_key=' + encodeURIComponent(key)
       });
       const data = await resp.json();
       
