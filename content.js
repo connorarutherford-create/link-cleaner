@@ -48,24 +48,34 @@ function looksLikeUrl(text) {
   if (!text || text.length < 8 || text.length > 4096) return false;
   return text.startsWith('http://') || text.startsWith('https://');
 }
-
+// ─── Toast via Shadow DOM (immune to page CSS) ──────────────────────────────
 function showToast(count, action) {
   try {
     const prefix = action === 'click' ? 'Redirected - ' : '';
     const msg = 'Link Cleaner: ' + prefix + 'stripped ' + count + ' tracking param' + (count > 1 ? 's' : '');
-    const el = document.createElement('div');
-    el.textContent = msg;
-    Object.assign(el.style, {
-      position: 'fixed', bottom: '24px', right: '24px',
-      background: '#0f0f1a', color: '#22c55e',
-      padding: '10px 18px', borderRadius: '10px',
-      fontSize: '13px', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-      zIndex: 2147483647,
-      boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-      border: '1px solid rgba(34,197,94,0.2)',
-    });
-    document.documentElement.appendChild(el);
-    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 4000);
+    
+    // Create a host element with a shadow root
+    const host = document.createElement('div');
+    host.id = 'lc-toast-' + Date.now();
+    const shadow = host.attachShadow({ mode: 'open' });
+    
+    // Style inside shadow DOM — immune to page CSS
+    shadow.innerHTML = '<style>' +
+      ':host { all: initial; position: fixed; bottom: 24px; right: 24px; z-index: 2147483647; }' +
+      'div {' +
+        'background: #0f0f1a; color: #22c55e; padding: 10px 18px; border-radius: 10px;' +
+        'font: 13px -apple-system, BlinkMacSystemFont, sans-serif;' +
+        'box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 1px solid rgba(34,197,94,0.2);' +
+        'opacity: 1; transition: opacity 0.3s;' +
+      '}' +
+    '</style><div>' + msg + '</div>';
+    
+    document.documentElement.appendChild(host);
+    setTimeout(() => {
+      const inner = shadow.querySelector('div');
+      if (inner) inner.style.opacity = '0';
+      setTimeout(() => host.remove(), 500);
+    }, 4000);
   } catch(e) {}
 }
 
@@ -105,18 +115,7 @@ document.addEventListener('click', (e) => {
   const cleaned = cleanUrl(el.href);
   if (!cleaned || cleaned.removed === 0) return;
   e.preventDefault();
-  const msg = 'Redirected - stripped ' + cleaned.removed + ' tracking param' + (cleaned.removed > 1 ? 's' : '');
-  try {
-    chrome.runtime.sendMessage({ action: 'show-toast', message: msg }, () => {
-      // Check if background received it
-      if (chrome.runtime.lastError) {
-        // Notification failed - try fallback
-        try { alert(msg); } catch(e) {}
-      }
-    });
-  } catch(e) {
-    try { alert(msg); } catch(e) {}
-  }
+  showToast(cleaned.removed, 'click');
   setTimeout(() => { window.location.href = cleaned.url; }, 2000);
 });
 
