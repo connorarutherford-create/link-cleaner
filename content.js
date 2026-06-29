@@ -3,7 +3,7 @@
 
 const TRACKERS = [
   'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
-  'fbclid', 'gclid', 'gclsrc', 'dclid', 'msclkid',
+  'fbclid', 'gclsrc', 'dclid', 'msclkid',
   'twclid', 'ysclid', 'wickedid',
   'sc_campaign', 'sc_channel', 'sc_content', 'sc_medium', 'sc_outcome', 'sc_geo', 'sc_country',
   'ref', 'ref_src', 'ref_url', 'source',
