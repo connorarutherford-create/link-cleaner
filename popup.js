@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Track daily stats
   const today = new Date().toDateString();
-  const stored = await chrome.storage.sync.get(['dailyCleaned', 'dailyTrackers', 'lastDate', 'autoClean']);
+  const stored = await chrome.storage.sync.get(['dailyCleaned', 'dailyTrackers', 'lastDate', 'autoClean', 'cleanOnClick']);
   
   let dailyCleaned = (stored.lastDate === today) ? (stored.dailyCleaned || 0) : 0;
   let dailyTrackers = (stored.lastDate === today) ? (stored.dailyTrackers || 0) : 0;
