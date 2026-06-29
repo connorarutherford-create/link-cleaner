@@ -41,7 +41,7 @@ function showToast(count, action) {
     opacity: '1', transition: 'opacity 0.3s',
   });
   document.body.appendChild(el);
-  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 2500);
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 4000);
 }
 
 // ─── Auto-clean on copy ─────────────────────────────────────────────────────
