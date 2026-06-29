@@ -20,83 +20,102 @@ function cleanUrl(url) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const statusEl = document.getElementById('loading');
-  const cleanUrlEl = document.getElementById('cleanUrl');
+  const statusIcon = document.getElementById('statusIcon');
+  const statusLabel = document.getElementById('statusLabel');
+  const statusSub = document.getElementById('statusSub');
+  const urlBox = document.getElementById('urlBox');
   const originalUrlEl = document.getElementById('originalUrl');
   const copyBtn = document.getElementById('copyBtn');
   const copiedMsg = document.getElementById('copiedMsg');
-  const statsEl = document.getElementById('stats');
-  const toggle = document.getElementById('autoToggle');
+  const autoToggle = document.getElementById('autoToggle');
+  const switchKnob = document.getElementById('switchKnob');
   const upgradeBtn = document.getElementById('upgradeBtn');
+  const statsRow = document.getElementById('statsRow');
+  const statCleaned = document.getElementById('statCleaned');
+  const statTracking = document.getElementById('statTracking');
 
-  // Load auto-clean state
-  const stored = await chrome.storage.sync.get(['autoClean']);
+  // Track daily stats
+  const today = new Date().toDateString();
+  const stored = await chrome.storage.sync.get(['dailyCleaned', 'dailyTrackers', 'lastDate', 'autoClean']);
+  
+  let dailyCleaned = (stored.lastDate === today) ? (stored.dailyCleaned || 0) : 0;
+  let dailyTrackers = (stored.lastDate === today) ? (stored.dailyTrackers || 0) : 0;
+
   const isActive = stored.autoClean !== false;
-  toggle.classList.toggle('active', isActive);
+  switchKnob.classList.toggle('active', isActive);
 
   // Toggle auto-clean
-  toggle.addEventListener('click', async () => {
-    const nowActive = !toggle.classList.contains('active');
-    toggle.classList.toggle('active');
+  autoToggle.addEventListener('click', async () => {
+    const nowActive = !switchKnob.classList.contains('active');
+    switchKnob.classList.toggle('active');
     await chrome.storage.sync.set({ autoClean: nowActive });
-    
-    // Notify content script
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    chrome.tabs.sendMessage(tab.id, { action: 'autoClean', enabled: nowActive }).catch(() => {});
   });
 
   // Upgrade button
   upgradeBtn.addEventListener('click', () => {
-    statusEl.textContent = '\uD83D\uDD17 Coming soon - payment link';
-    setTimeout(() => { init(); }, 2000);
+    statusIcon.textContent = '\uD83D\uDD17';
+    statusLabel.textContent = 'Coming Soon';
+    statusSub.textContent = 'Pro payments will be available shortly';
+    setTimeout(() => setStatusNeutral(), 2500);
   });
 
-  async function init() {
+  function setStatusNeutral() {
+    statusIcon.textContent = '\uD83D\uDD17';
+    statusLabel.textContent = 'Ready';
+    statusSub.textContent = 'Click a button to clean the current URL';
+  }
+
+  async function loadCurrentTab() {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       const original = tab.url;
-      
       const result = cleanUrl(original);
-      
+
       if (!result.url) {
-        statusEl.textContent = '\u274C Could not read this URL';
+        statusIcon.textContent = '\u274C';
+        statusLabel.textContent = 'Cannot Read Page';
+        statusSub.textContent = 'This page URL cannot be processed';
         return;
       }
-      
+
       if (!result.cleaned) {
-        statusEl.textContent = '\u2705 Already clean';
-        originalUrlEl.textContent = original;
-        originalUrlEl.style.display = 'block';
-        statsEl.textContent = 'No tracking found';
-        statsEl.style.display = 'block';
+        statusIcon.textContent = '\u2705';
+        statusLabel.textContent = 'Already Clean';
+        statusSub.textContent = 'No tracking parameters found';
         copyBtn.disabled = true;
         return;
       }
-      
-      statusEl.textContent = `\uD83E\uDDF9 Stripped ${result.removed} tracking parameter${result.removed > 1 ? 's' : ''}`;
-      cleanUrlEl.textContent = result.url;
-      cleanUrlEl.style.display = 'block';
+
+      statusIcon.textContent = '\uD83E\uDDF9';
+      statusLabel.textContent = `Cleaned: ${result.removed} tracking param${result.removed > 1 ? 's' : ''}`;
+      statusSub.textContent = 'The clean URL is ready to copy';
+      urlBox.style.display = 'block';
       originalUrlEl.textContent = original;
-      originalUrlEl.style.display = 'block';
-      statsEl.textContent = `${result.removed} params removed`;
-      statsEl.style.display = 'block';
-      
       copyBtn.disabled = false;
-      
-      copyBtn.addEventListener('click', async () => {
+
+      copyBtn.onclick = async () => {
         try {
           await navigator.clipboard.writeText(result.url);
           copiedMsg.style.display = 'block';
-          setTimeout(() => { copiedMsg.style.display = 'none'; }, 2000);
+          setTimeout(() => { copiedMsg.style.display = 'none'; }, 2500);
         } catch (e) {
-          statusEl.textContent = '\u274C Copy failed';
+          statusLabel.textContent = '\u274C Copy Failed';
         }
-      });
-      
+      };
+
     } catch (e) {
-      statusEl.textContent = '\u274C Error reading tab';
+      statusIcon.textContent = '\u274C';
+      statusLabel.textContent = 'Error';
+      statusSub.textContent = 'Could not read the current tab';
     }
   }
 
-  init();
+  // Update stats display
+  statCleaned.textContent = dailyCleaned;
+  statTracking.textContent = dailyTrackers;
+  if (dailyCleaned > 0 || dailyTrackers > 0) {
+    statsRow.style.display = 'flex';
+  }
+
+  loadCurrentTab();
 });
