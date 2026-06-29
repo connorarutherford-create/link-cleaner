@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const autoToggle = document.getElementById('autoToggle');
   const switchKnob = document.getElementById('switchKnob');
   const upgradeBtn = document.getElementById('upgradeBtn');
+  const proBadge = document.getElementById('proBadge');
   const statsRow = document.getElementById('statsRow');
   const statCleaned = document.getElementById('statCleaned');
   const statTracking = document.getElementById('statTracking');
@@ -52,12 +53,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Upgrade button
-  upgradeBtn.addEventListener('click', () => {
+  function showComingSoon() {
     statusIcon.textContent = '\uD83D\uDD17';
     statusLabel.textContent = 'Coming Soon';
     statusSub.textContent = 'Pro payments will be available shortly';
-    setTimeout(() => setStatusNeutral(), 2500);
-  });
+    setTimeout(() => loadCurrentTab(), 2500);
+  }
+  
+  upgradeBtn.addEventListener('click', showComingSoon);
+  proBadge.addEventListener('click', showComingSoon);
 
   function setStatusNeutral() {
     statusIcon.textContent = '\uD83D\uDD17';
