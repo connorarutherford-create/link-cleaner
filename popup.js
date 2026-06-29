@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     
-    statusEl.textContent = `🧹 Stripped ${result.removed} tracking parameter${result.removed > 1 ? 's' : ''}`;
+    statusEl.textContent = `[x] Stripped ${result.removed} tracking parameter${result.removed > 1 ? 's' : ''}`;
     cleanUrlEl.textContent = result.url;
     cleanUrlEl.style.display = 'block';
     originalUrlEl.textContent = original;
