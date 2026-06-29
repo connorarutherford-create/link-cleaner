@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      width: 280px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      background: #1a1a2e;
+      color: #e0e0e0;
+    }
+    .status {
+      text-align: center;
+      padding: 12px 0;
+    }
+    .clean-link {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin: 10px 0;
+      word-break: break-all;
+      font-size: 12px;
+      color: #a0a0c0;
+      display: none;
+    }
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #0d6efd;
+      color: white;
+      margin: 4px 0;
+    }
+    .btn:hover { background: #0b5ed7; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .copied {
+      color: #4ade80;
+      font-size: 13px;
+      margin-top: 8px;
+      display: none;
+    }
+    .original {
+      color: #6c757d;
+      font-size: 11px;
+      margin-top: 4px;
+      word-break: break-all;
+      display: none;
+    }
+    .stats {
+      font-size: 11px;
+      color: #6c757d;
+      margin-top: 8px;
+      text-align: center;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="status" id="status">
+    <div id="loading">Reading current tab...</div>
+  </div>
+  <div class="original" id="originalUrl"></div>
+  <div class="clean-link" id="cleanUrl"></div>
+  <button class="btn" id="copyBtn" disabled>📋 Copy Clean Link</button>
+  <div class="copied" id="copiedMsg">✅ Copied!</div>
+  <div class="stats" id="stats"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
