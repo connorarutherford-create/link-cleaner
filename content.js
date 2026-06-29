@@ -51,31 +51,30 @@ function looksLikeUrl(text) {
 // ─── Toast via Shadow DOM (immune to page CSS) ──────────────────────────────
 function showToast(count, action) {
   try {
-    const prefix = action === 'click' ? 'Redirected - ' : '';
-    const msg = 'Link Cleaner: ' + prefix + 'stripped ' + count + ' tracking param' + (count > 1 ? 's' : '');
-    
-    // Create a host element with a shadow root
-    const host = document.createElement('div');
-    host.id = 'lc-toast-' + Date.now();
-    const shadow = host.attachShadow({ mode: 'open' });
-    
-    // Style inside shadow DOM — immune to page CSS
-    shadow.innerHTML = '<style>' +
-      ':host { all: initial; position: fixed; bottom: 24px; right: 24px; z-index: 2147483647; }' +
-      'div {' +
-        'background: #0f0f1a; color: #22c55e; padding: 10px 18px; border-radius: 10px;' +
-        'font: 13px -apple-system, BlinkMacSystemFont, sans-serif;' +
-        'box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 1px solid rgba(34,197,94,0.2);' +
-        'opacity: 1; transition: opacity 0.3s;' +
-      '}' +
-    '</style><div>' + msg + '</div>';
-    
-    document.documentElement.appendChild(host);
-    setTimeout(() => {
-      const inner = shadow.querySelector('div');
-      if (inner) inner.style.opacity = '0';
-      setTimeout(() => host.remove(), 500);
-    }, 4000);
+    chrome.storage.sync.get(['showToasts'], (result) => {
+      if (result.showToasts === false) return;
+      // proceed with existing toast logic
+      const prefix = action === 'click' ? 'Redirected - ' : '';
+      const msg = 'Link Cleaner: ' + prefix + 'stripped ' + count + ' tracking param' + (count > 1 ? 's' : '');
+      const host = document.createElement('div');
+      host.id = 'lc-toast-' + Date.now();
+      const shadow = host.attachShadow({ mode: 'open' });
+      shadow.innerHTML = '<style>' +
+        ':host { all: initial; position: fixed; bottom: 24px; right: 24px; z-index: 2147483647; }' +
+        'div {' +
+          'background: #0f0f1a; color: #22c55e; padding: 10px 18px; border-radius: 10px;' +
+          'font: 13px -apple-system, BlinkMacSystemFont, sans-serif;' +
+          'box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 1px solid rgba(34,197,94,0.2);' +
+          'opacity: 1; transition: opacity 0.3s;' +
+        '}' +
+      '</style><div>' + msg + '</div>';
+      document.documentElement.appendChild(host);
+      setTimeout(() => {
+        const inner = shadow.querySelector('div');
+        if (inner) inner.style.opacity = '0';
+        setTimeout(() => host.remove(), 500);
+      }, 4000);
+    });
   } catch(e) {}
 }
 

@@ -50,6 +50,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const switchKnob = document.getElementById('switchKnob');
   const clickToggle = document.getElementById('clickToggle');
   const clickSwitch = document.getElementById('clickSwitch');
+  const toastToggle = document.getElementById('toastToggle');
+  const toastSwitch = document.getElementById('toastSwitch');
   const upgradeBtn = document.getElementById('upgradeBtn');
   const proBadge = document.getElementById('proBadge');
   const activationSection = document.getElementById('activationSection');
@@ -64,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Track daily stats
   const today = new Date().toDateString();
-  const stored = await chrome.storage.sync.get(['dailyCleaned', 'dailyTrackers', 'lastDate', 'autoClean', 'cleanOnClick', 'proLicense']);
+  const stored = await chrome.storage.sync.get(['dailyCleaned', 'dailyTrackers', 'lastDate', 'autoClean', 'cleanOnClick', 'proLicense', 'showToasts']);
   
   let dailyCleaned = (stored.lastDate === today) ? (stored.dailyCleaned || 0) : 0;
   let dailyTrackers = (stored.lastDate === today) ? (stored.dailyTrackers || 0) : 0;
@@ -132,6 +134,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const clickActive = stored.cleanOnClick === true;
   clickSwitch.classList.toggle('active', clickActive);
 
+  const toastActive = stored.showToasts !== false;
+  toastSwitch.classList.toggle('active', toastActive);
+
   // Toggle auto-clean
   autoToggle.addEventListener('click', async () => {
     const nowActive = !switchKnob.classList.contains('active');
@@ -144,6 +149,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const nowActive = !clickSwitch.classList.contains('active');
     clickSwitch.classList.toggle('active');
     await chrome.storage.sync.set({ cleanOnClick: nowActive });
+  });
+
+  // Toggle toasts
+  toastToggle.addEventListener('click', async () => {
+    const nowActive = !toastSwitch.classList.contains('active');
+    toastSwitch.classList.toggle('active');
+    await chrome.storage.sync.set({ showToasts: nowActive });
   });
 
   // Upgrade button
