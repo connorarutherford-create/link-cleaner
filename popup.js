@@ -1,44 +1,34 @@
-// Tracking parameters to strip
-const TRACKING_PARAMS = [
-  'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
-  'fbclid', 'gclid', 'gclsrc', 'dclid', 'msclkid',
-  'twclid', 'sc_campaign', 'sc_channel', 'sc_content', 'sc_medium',
-  'sc_outcome', 'sc_geo', 'sc_country', 'ref', 'ref_src', 'ref_url',
-  'source', 'si', 's_kwcid', 'redirect', 'track', 'tracking',
-  'aff_id', 'affiliate', 'aff', 'campaign_id', 'cid',
-  'mc_cid', 'mc_eid', 'pk_source', 'pk_medium', 'pk_campaign',
-  ' pk_keyword', 'ysclid', 'wickedid', 'vgo_eo'
-];
+// No hardcoded tracking list — we use a whitelist approach instead.
 
 function cleanUrl(url) {
   try {
     const u = new URL(url);
     let removed = 0;
     
-    // Strip tracking params
-    for (const key of [...u.searchParams.keys()]) {
-      if (TRACKING_PARAMS.includes(key.toLowerCase())) {
-        u.searchParams.delete(key);
+    // Strip hash fragments entirely — they're almost always tracking/state
+    if (u.hash) {
+      u.hash = '';
+      removed++;
+    }
+    
+    // Strip ALL query params except known-essential ones
+    const ESSENTIAL = ['q', 'v', 'id', 's', 'page', 'tab', 't'];
+    const kept = [];
+    for (const [key, val] of u.searchParams.entries()) {
+      if (ESSENTIAL.includes(key)) {
+        kept.push([key, val]);
+      } else {
         removed++;
       }
     }
     
-    // Remove empty search
-    let result = u.toString();
-    if (result.endsWith('?')) result = result.slice(0, -1);
-    
-    // Remove trailing slash on path-only URLs
-    if (result.endsWith('/') && !result.includes('?')) {
-      // Keep if it's a root domain
-      try {
-        const parsed = new URL(result);
-        if (parsed.pathname.length > 1) {
-          result = result.replace(/\/$/, '');
-        }
-      } catch(e) {}
+    // Rebuild with only essential params
+    u.search = '';
+    for (const [key, val] of kept) {
+      u.searchParams.set(key, val);
     }
     
-    return { url: result, removed };
+    return { url: u.toString(), removed };
   } catch (e) {
     return { url: null, removed: 0 };
   }
