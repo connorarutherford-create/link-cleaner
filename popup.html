@@ -3,26 +3,103 @@
 <head>
   <style>
     body {
-      width: 280px;
+      width: 320px;
       padding: 16px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       background: #1a1a2e;
       color: #e0e0e0;
+      font-size: 13px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .title {
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .badge {
+      background: #0d6efd;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
     }
     .status {
       text-align: center;
-      padding: 12px 0;
+      padding: 10px 0;
     }
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #16213e;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin: 8px 0;
+    }
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      background: #374151;
+      border-radius: 11px;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle.active { background: #0d6efd; }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s;
+    }
+    .toggle.active::after { transform: translateX(18px); }
+    .feature-list {
+      margin: 8px 0;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .feature-list div {
+      padding: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .feature-list .pro { color: #4ade80; }
+    .feature-list .free { color: #6b7280; }
     .clean-link {
       background: #16213e;
       border: 1px solid #0f3460;
       border-radius: 8px;
       padding: 10px 12px;
-      margin: 10px 0;
+      margin: 8px 0;
       word-break: break-all;
       font-size: 12px;
       color: #a0a0c0;
+      display: none;
+    }
+    .original {
+      color: #6c757d;
+      font-size: 11px;
+      margin-top: 4px;
+      word-break: break-all;
       display: none;
     }
     .btn {
@@ -30,7 +107,7 @@
       padding: 10px;
       border: none;
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       background: #0d6efd;
@@ -41,35 +118,63 @@
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .copied {
       color: #4ade80;
-      font-size: 13px;
-      margin-top: 8px;
+      font-size: 12px;
+      margin-top: 6px;
       display: none;
-    }
-    .original {
-      color: #6c757d;
-      font-size: 11px;
-      margin-top: 4px;
-      word-break: break-all;
-      display: none;
+      text-align: center;
     }
     .stats {
       font-size: 11px;
       color: #6c757d;
-      margin-top: 8px;
+      margin-top: 6px;
       text-align: center;
       display: none;
     }
+    .upgrade {
+      margin-top: 10px;
+      padding: 10px;
+      background: linear-gradient(135deg, #0d6efd, #6610f2);
+      border-radius: 8px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .upgrade:hover { opacity: 0.9; }
   </style>
 </head>
 <body>
-  <div class="status" id="status">
-    <div id="loading">Reading current tab...</div>
+  <div class="header">
+    <span class="title">&#128279; Link Cleaner</span>
+    <span class="badge">PRO</span>
   </div>
+
+  <div class="status" id="status">
+    <span id="loading">Click to clean current tab URL...</span>
+  </div>
+
+  <div class="toggle-row">
+    <span class="toggle-label">
+      <span>&#9889;</span> Auto-clean on copy
+    </span>
+    <div class="toggle active" id="autoToggle" role="switch" tabindex="0"></div>
+  </div>
+
   <div class="original" id="originalUrl"></div>
   <div class="clean-link" id="cleanUrl"></div>
+
   <button class="btn" id="copyBtn" disabled>&#128203; Copy Clean Link</button>
   <div class="copied" id="copiedMsg">&#9989; Copied!</div>
   <div class="stats" id="stats"></div>
+
+  <div class="feature-list">
+    <div><span class="pro">&#9989;</span> Auto-clean every copied URL</div>
+    <div><span class="pro">&#9989;</span> Right-click any link &#8594; Copy Clean</div>
+    <div><span class="pro">&#9989;</span> Strips 50+ tracking parameters</div>
+    <div><span class="free">&#128308;</span> Manual clean (free tier)</div>
+  </div>
+
+  <div class="upgrade" id="upgradeBtn">&#127775; Upgrade to Pro — $4.99/year</div>
 
   <script src="popup.js"></script>
 </body>

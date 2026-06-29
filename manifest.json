@@ -1,9 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "Link Cleaner",
-  "version": "1.0",
-  "description": "Strips tracking garbage from URLs. Clean links, no clutter.",
-  "permissions": ["activeTab", "clipboardWrite"],
+  "name": "Link Cleaner Pro",
+  "version": "2.0",
+  "description": "Auto-cleans tracking from every URL you copy. Strips fbclid, utm_*, gclid, and 50+ trackers before they reach your clipboard.",
+  "permissions": [
+    "activeTab",
+    "clipboardWrite",
+    "clipboardRead",
+    "storage",
+    "contextMenus",
+    "scripting"
+  ],
+  "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -11,6 +19,14 @@
       "48": "icon48.png",
       "128": "icon128.png"
     }
+  },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["content.js"],
+    "run_at": "document_end"
+  }],
+  "background": {
+    "service_worker": "background.js"
   },
   "icons": {
     "16": "icon16.png",
