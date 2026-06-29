@@ -1,115 +1,69 @@
-// Content script — intercepts copy events and auto-cleans URLs
+// Content script — Link Cleaner Pro auto-clean on copy
+// Intercepts copy events, checks for dirty URLs, replaces with clean version
 
-const ESSENTIAL_PARAMS = ['q', 'v', 'id', 's', 'page', 'tab', 't'];
+const ESSENTIAL = ['q', 'v', 'id', 's', 'page', 'tab', 't'];
 
 function cleanUrl(url) {
   try {
     const u = new URL(url);
     let removed = 0;
-    
-    // Strip hash fragments (almost always tracking/state)
-    if (u.hash) {
-      u.hash = '';
-      removed = 1;
-    }
-    
-    // Strip non-essential query params
+    if (u.hash) { u.hash = ''; removed = 1; }
     const kept = [];
     for (const [key, val] of u.searchParams.entries()) {
-      if (ESSENTIAL_PARAMS.includes(key)) {
-        kept.push([key, val]);
-      }
+      if (ESSENTIAL.includes(key)) kept.push([key, val]);
+      else removed++;
     }
-    removed += u.searchParams.toString() ? (u.searchParams.toString().split('&').length - kept.length) : 0;
-    
-    if (kept.length === 0 && !removed) return { url: u.toString(), cleaned: false, removed: 0 };
-    
     u.search = '';
-    for (const [key, val] of kept) {
-      u.searchParams.set(key, val);
-    }
-    
-    return { url: u.toString(), cleaned: removed > 0, removed };
+    for (const [key, val] of kept) u.searchParams.set(key, val);
+    return { url: u.toString(), removed };
   } catch (e) {
-    return { url: url, cleaned: false, removed: 0 };
+    return null;
   }
 }
 
 function looksLikeUrl(text) {
-  if (!text || text.length < 5 || text.length > 4096) return false;
-  // Must start with http:// or https://
-  if (!text.startsWith('http://') && !text.startsWith('https://')) return false;
-  // Must have a domain with a dot
-  try {
-    new URL(text);
-    return true;
-  } catch {
-    return false;
-  }
+  if (!text || text.length < 8 || text.length > 4096) return false;
+  return text.startsWith('http://') || text.startsWith('https://');
 }
 
-// Intercept copy events
-document.addEventListener('copy', async (e) => {
-  // Check if auto-clean is enabled (stored in chrome.storage)
-  const result = await chrome.storage.sync.get(['autoClean']);
-  if (result.autoClean === false) return;
+// Listen for copy events
+document.addEventListener('copy', (e) => {
+  const sel = window.getSelection().toString().trim();
+  if (!looksLikeUrl(sel)) return;
   
-  // Get the selected text
-  const selection = window.getSelection().toString().trim();
-  
-  // Check if it looks like a URL
-  if (!looksLikeUrl(selection)) {
-    // Also check if there's a link element in the selection
-    let linkUrl = '';
-    const anchor = e.target?.closest?.('a');
-    if (anchor?.href && looksLikeUrl(anchor.href)) {
-      linkUrl = anchor.href;
-    }
-    if (!linkUrl) return;
-    return replaceClipboard(linkUrl);
-  }
-  
-  return replaceClipboard(selection);
-});
-
-async function replaceClipboard(text) {
-  const clean = cleanUrl(text);
-  if (!clean.cleaned) return;
+  const cleaned = cleanUrl(sel);
+  if (!cleaned || cleaned.removed === 0) return;
   
   // Override clipboard with clean URL
-  try {
-    await navigator.clipboard.writeText(clean.url);
-    // Notify the user via a brief toast
-    showToast(`\u2705 Tracking removed (${clean.removed} param${clean.removed > 1 ? 's' : ''})`);
-  } catch (e) {
-    // Clipboard write failed silently
-  }
-}
+  e.preventDefault();
+  e.clipboardData.setData('text/plain', cleaned.url);
+  
+  // Flash toast
+  showToast(cleaned.removed);
+});
 
-function showToast(msg) {
+function showToast(count) {
   const el = document.createElement('div');
-  el.textContent = msg;
+  el.textContent = 'Link Cleaner: stripped ' + count + ' tracking param' + (count > 1 ? 's' : '');
   Object.assign(el.style, {
     position: 'fixed',
-    bottom: '20px',
-    right: '20px',
-    background: '#1a1a2e',
-    color: '#4ade80',
-    padding: '8px 16px',
-    borderRadius: '8px',
+    bottom: '24px',
+    right: '24px',
+    background: '#0f0f1a',
+    color: '#22c55e',
+    padding: '10px 18px',
+    borderRadius: '10px',
     fontSize: '13px',
-    fontFamily: 'system-ui, sans-serif',
-    zIndex: 999999,
-    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+    fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+    zIndex: 2147483647,
+    boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+    border: '1px solid rgba(34,197,94,0.2)',
+    opacity: '1',
     transition: 'opacity 0.3s',
   });
   document.body.appendChild(el);
-  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 2000);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 300);
+  }, 2500);
 }
-
-// Listen for messages from popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'ping') {
-    sendResponse({ status: 'alive' });
-  }
-});
