@@ -1,18 +1,35 @@
 // Shared clean logic
-const ESSENTIAL = ['q', 'v', 'id', 's', 'page', 'tab', 't'];
+const TRACKERS = [
+  'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+  'fbclid', 'gclid', 'gclsrc', 'dclid', 'msclkid',
+  'twclid', 'ysclid', 'wickedid',
+  'sc_campaign', 'sc_channel', 'sc_content', 'sc_medium', 'sc_outcome', 'sc_geo', 'sc_country',
+  'ref', 'ref_src', 'ref_url', 'source',
+  'si', 's_kwcid',
+  'aff_id', 'affiliate', 'aff', 'campaign_id', 'cid',
+  'mc_cid', 'mc_eid',
+  'pk_source', 'pk_medium', 'pk_campaign', 'pk_keyword',
+  'vgo_eo',
+];
 
 function cleanUrl(url) {
   try {
     const u = new URL(url);
     let removed = 0;
     if (u.hash) { u.hash = ''; removed++; }
-    const kept = [];
-    for (const [key, val] of u.searchParams.entries()) {
-      if (ESSENTIAL.includes(key)) kept.push([key, val]);
-      else removed++;
+    for (const key of [...u.searchParams.keys()]) {
+      if (TRACKERS.includes(key.toLowerCase())) {
+        u.searchParams.delete(key);
+        removed++;
+      }
     }
-    u.search = '';
-    for (const [key, val] of kept) u.searchParams.set(key, val);
+    for (const key of [...u.searchParams.keys()]) {
+      const val = u.searchParams.get(key);
+      if (val === '' || val === null) {
+        u.searchParams.delete(key);
+        removed++;
+      }
+    }
     return { url: u.toString(), cleaned: removed > 0, removed };
   } catch (e) {
     return { url: null, cleaned: false, removed: 0 };

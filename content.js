@@ -1,20 +1,41 @@
 // Content script — Link Cleaner Pro
 // Auto-clean on copy + clean link clicks on every page
 
-const ESSENTIAL = ['q', 'v', 'id', 's', 'page', 'tab', 't'];
+const TRACKERS = [
+  'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+  'fbclid', 'gclid', 'gclsrc', 'dclid', 'msclkid',
+  'twclid', 'ysclid', 'wickedid',
+  'sc_campaign', 'sc_channel', 'sc_content', 'sc_medium', 'sc_outcome', 'sc_geo', 'sc_country',
+  'ref', 'ref_src', 'ref_url', 'source',
+  'si', 's_kwcid',
+  'aff_id', 'affiliate', 'aff', 'campaign_id', 'cid',
+  'mc_cid', 'mc_eid',
+  'pk_source', 'pk_medium', 'pk_campaign', 'pk_keyword',
+  'vgo_eo',
+];
 
 function cleanUrl(url) {
   try {
     const u = new URL(url);
     let removed = 0;
-    if (u.hash) { u.hash = ''; removed = 1; }
-    const kept = [];
-    for (const [key, val] of u.searchParams.entries()) {
-      if (ESSENTIAL.includes(key)) kept.push([key, val]);
-      else removed++;
+
+    if (u.hash) { u.hash = ''; removed++; }
+
+    for (const key of [...u.searchParams.keys()]) {
+      if (TRACKERS.includes(key.toLowerCase())) {
+        u.searchParams.delete(key);
+        removed++;
+      }
     }
-    u.search = '';
-    for (const [key, val] of kept) u.searchParams.set(key, val);
+
+    for (const key of [...u.searchParams.keys()]) {
+      const val = u.searchParams.get(key);
+      if (val === '' || val === null) {
+        u.searchParams.delete(key);
+        removed++;
+      }
+    }
+
     return { url: u.toString(), removed };
   } catch (e) {
     return null;
@@ -28,7 +49,6 @@ function looksLikeUrl(text) {
 
 function showToast(count, action) {
   try {
-    // Try in-page toast first
     const prefix = action === 'click' ? 'Redirected - ' : '';
     const msg = 'Link Cleaner: ' + prefix + 'stripped ' + count + ' tracking param' + (count > 1 ? 's' : '');
     const el = document.createElement('div');
@@ -44,20 +64,15 @@ function showToast(count, action) {
     });
     document.documentElement.appendChild(el);
     setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 4000);
-  } catch(e) {
-    // Page may not support DOM append — silent fallback
-  }
+  } catch(e) {}
 }
 
 // ─── Auto-clean on copy ─────────────────────────────────────────────────────
 document.addEventListener('copy', (e) => {
   const sel = window.getSelection().toString().trim();
   if (!looksLikeUrl(sel)) return;
-
-  document.body.dataset.lcLoaded = 'true';
   const cleaned = cleanUrl(sel);
   if (!cleaned || cleaned.removed === 0) return;
-
   e.preventDefault();
   e.clipboardData.setData('text/plain', cleaned.url);
   showToast(cleaned.removed, 'copy');
@@ -70,24 +85,17 @@ document.addEventListener('click', (e) => {
   if (!el || !el.href) return;
   if (!el.href.startsWith('http')) return;
 
-  // Check if clean-on-click is enabled (with safe fallback)
   try {
     chrome.storage.sync.get(['cleanOnClick'], (result) => {
       if (!result.cleanOnClick) return;
-      handleClickRedirect(e, el);
+      const cleaned = cleanUrl(el.href);
+      if (!cleaned || cleaned.removed === 0) return;
+      e.preventDefault();
+      showToast(cleaned.removed, 'click');
+      setTimeout(() => { window.location.href = cleaned.url; }, 800);
     });
-  } catch (e) {
-    // Storage unavailable on this page — no-op
-  }
+  } catch(e) {}
 });
-
-function handleClickRedirect(e, el) {
-  const cleaned = cleanUrl(el.href);
-  if (!cleaned || cleaned.removed === 0) return;
-  e.preventDefault();
-  showToast(cleaned.removed, 'click');
-  setTimeout(() => { window.location.href = cleaned.url; }, 800);
-}
 
 // ─── Listen for setting changes from popup ──────────────────────────────────
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
